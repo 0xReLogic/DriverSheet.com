@@ -258,3 +258,31 @@ fn capture_date(text: &str, pattern: &str) -> Option<NaiveDate> {
     let raw = caps.get(1)?.as_str();
     NaiveDate::parse_from_str(raw, "%m/%d/%Y").ok()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::NaiveDate;
+
+    #[test]
+    fn parse_text_extracts_all_values() {
+        let text = "Weekly Earnings\nGross $1,234.56\nTips $78.90\nDate 08/15/2024\nMileage 123.4 mi";
+        let (date, gross, tips, mileage) = parse_text(text).expect("parse succeeds");
+
+        assert_eq!(date, NaiveDate::from_ymd_opt(2024, 8, 15).unwrap());
+        assert!((gross - 1234.56).abs() < f64::EPSILON);
+        assert!((tips - 78.90).abs() < f64::EPSILON);
+        assert_eq!(mileage, Some(123.4));
+    }
+
+    #[test]
+    fn parse_text_allows_missing_mileage() {
+        let text = "Gross $10.00\nTips $2.50\nDate 01/02/2023";
+        let (date, gross, tips, mileage) = parse_text(text).expect("parse succeeds");
+
+        assert_eq!(date, NaiveDate::from_ymd_opt(2023, 1, 2).unwrap());
+        assert!((gross - 10.00).abs() < f64::EPSILON);
+        assert!((tips - 2.50).abs() < f64::EPSILON);
+        assert!(mileage.is_none());
+    }
+}

@@ -212,3 +212,29 @@ impl IntoResponse for ApiError {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_sheet_id;
+
+    #[test]
+    fn normalize_sheet_id_strips_google_url_path() {
+        let url = "https://docs.google.com/spreadsheets/d/1AbCDeFg/view";
+        assert_eq!(normalize_sheet_id(url), "1AbCDeFg");
+    }
+
+    #[test]
+    fn normalize_sheet_id_handles_trailing_slash_and_query() {
+        let url = "https://docs.google.com/spreadsheets/d/1AbCDeFg/clone?usp=sharing";
+        assert_eq!(normalize_sheet_id(url), "1AbCDeFg");
+    }
+
+    #[test]
+    fn normalize_sheet_id_returns_input_when_no_marker() {
+        let input = "plain-sheet-id";
+        assert_eq!(normalize_sheet_id(input), "plain-sheet-id");
+
+        let other_url = "https://example.com/spreadsheets/plain-sheet-id";
+        assert_eq!(normalize_sheet_id(other_url), other_url);
+    }
+}
