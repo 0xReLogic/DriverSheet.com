@@ -1,0 +1,112 @@
+# PROMPT UNTUK AI CODER  
+Judul proyek: **"DriverSheet.com"** – MVP selesai 1 hari, stack Rust + Next.js, NO code boilerplate, fokus jalan dulu.
+
+---
+
+## 1. Tujuan
+Buat micro-SaaS yang parse **email PDF earnings** dari Uber, DoorDash, Lyft, dst → otomatis **append row** ke Google Sheet user.  
+Harga **$4/bulan** (lemon Payment Link one-click).  
+Breakeven 2 user.
+
+---
+
+## 2. Scope MVP (cukup ini DO NOT OVER-ENGINEER)
+### A. Landing + Dashboard (Next.js 13 app router)
+1. Halaman `/`  
+   - Hero headline "Forward gig emails → Google Sheet auto-updates"  
+   - Video 30 detik screen-record alur (boleh dummy)  
+   - Tombol "Start 7-day trial" → arahkan ke `/auth`
+
+2. Halaman `/auth`  
+   - Google OAuth 1-klik (pakai `next-auth`)  
+   - Setelah login langsung minta **share Sheet URL** (ga usah Google-file-picker)  
+   - Simpan `sheetId` ke backend
+
+3. Halaman `/dash`  
+   - Tampilkan forward address `user-xxx@driversheet.com` (copy button)  
+   - Tabel 30 baris terakhir (date, gross, tips)  
+   - Tombol "Download CSV"  
+   - Tombol upgrade ke paid (lemon Payment Link `$4/month`) → webhook ke backend
+
+### B. Backend (Rust binary)
+1. **HTTP API** (axum)  
+   - `POST /api/users` → body `{googleId, email, sheetId}`  
+   - `GET /api/users/:id/logs` → 30 baris parse terakhir  
+   - `POST /api/lemon-webhook` → verify signature, update `paid=true`
+
+2. **Mail server** (port 25)  
+   - Terima email ke `user-xxx@driversheet.com`  
+   - Ambil attachment PDF pertama  
+   - Regex cari:  
+     ```
+     Gross\s*\$?([\d,]+\.\d{2})
+     Tips\s*\$?([\d,]+\.\d{2})
+     Date\s*(\d{1,2}\/\d{1,2}\/\d{4})
+     Mileage\s*([\d,]+\.?\d*)?\s*mi
+     ```
+   - Append row ke Google Sheet lewat Sheets API (Service Account JSON 1 file)
+
+3. DB SQLite  
+   - `users(id, google_id, email, sheet_id, paid, created)`  
+   - `logs(id, user_id, order_date, gross, tips, mileage, parsed_at)`
+
+4. ENV minimal  
+   ```
+   DATABASE_URL=sqlite://data.db
+   GOOGLE_SA_KEY={"type":"service_account",...}
+   lemon_WEBHOOK_SECRET=whsec_...
+   BIND_MAIL=0.0.0.0:25
+   BIND_API=0.0.0.0:8080
+   ```
+
+### C. Deployment
+- Docker image single stage: Rust binary + Next.js static export (nginx inside)  
+- Port 25, 80, 443 exposed  
+- Volume cuma `./data:/app/data` (SQLite & PDF temp)
+
+---
+
+## 3. Harga & Gate
+- Trial 7 hari (cron set `paid=false` kalau belum bayar)  
+- Setelah bayar → lemon webhook `invoice.paid` → `paid=true`  
+- Ga ada fitur cancel/refund di MVP; user cancel via lemon portal
+
+---
+
+## 4. Tech Rules
+- NO Kafka, NO Redis, NO queue luar.  
+- PDF parse di RAM, delete file setelah 5 menit.  
+- Sheets API dipanggul synchronous (timeout 10 detik) – acceptable karena volume rendah.  
+- NO UI edit manual (MVP), NO multi-sheet.  
+- NO mobile app, NO PWA.
+
+---
+
+## 5. Estimasi File & Baris
+- Rust src ± 400 baris  
+- Next.js src ± 300 baris  
+- Dockerfile ± 30 baris  
+- 1 halaman landing copy sudah include
+
+---
+
+## 6. Deliverable
+1. Repo GitHub berisi:
+   - `/worker` → Rust full code + `.env.example`
+   - `/web` → Next.js full code + `next-auth` Google provider
+   - `docker-compose.yml` (prod ready)
+   - `README.md` → cara run lokal & deploy ke VPS
+2. File systemd service example untuk VPS Ubuntu
+3. Nginx/Caddy snippet redirect 80→443, expose port 25
+4. Cara buat Google Service Account + share Sheet (1 halaman markdown)
+
+---
+
+## 7. ETA
+- Code selesai **1 hari kerja**
+- Deploy di VPS baru + domain `driversheet.com` → ready collect email
+
+---
+
+Gas?
+jangan pernah ada emoticon
