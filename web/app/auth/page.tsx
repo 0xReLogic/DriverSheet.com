@@ -2,49 +2,132 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { SiGoogle } from "react-icons/si";
+import Link from "next/link";
+import { ArrowLeft, Loader2 } from "lucide-react";
 
 export default function AuthPage() {
-  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<"signin" | "sheet">("signin");
+  const [sheetUrl, setSheetUrl] = useState("");
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isSettingUp, setIsSettingUp] = useState(false);
 
   const handleGoogleSignIn = async () => {
+    setIsSigningIn(true);
     try {
-      setLoading(true);
+      // NextAuth will handle OAuth and redirect
       await signIn('google', { callbackUrl: '/dash' });
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Sign in error:', error);
+      setIsSigningIn(false);
     }
   };
 
+  const handleSetupComplete = async () => {
+    if (!sheetUrl) return;
+    setIsSettingUp(true);
+    
+    // TODO: Extract sheet ID and save via backend API
+    // const sheetId = extractSheetId(sheetUrl);
+    // await updateUserSheet(sheetId);
+    
+    // For now redirect to dash
+    window.location.href = "/dash";
+  };
+
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col justify-center px-6 py-16">
-      <div className="rounded-2xl border border-slate-200 bg-white p-10 shadow-xl shadow-indigo-100/40">
-        <div className="flex flex-col gap-6 text-center">
-          <div>
-            <h1 className="text-3xl font-semibold text-slate-900">Sign in to DriverSheet</h1>
-            <p className="mt-2 text-sm text-slate-500">
-              Connect with Google to link your Sheet and start your 7-day free trial. We only request access to the Sheet you pick—nothing else.
-            </p>
-          </div>
-          <div className="flex flex-col gap-4 text-left text-sm text-slate-600">
-            <p className="rounded-lg bg-slate-50 px-4 py-3">
-              <strong className="text-slate-900">Need a Sheet?</strong> We create one if you don’t have it yet. You can swap to your own later inside the dashboard.
-            </p>
-            <p className="rounded-lg bg-slate-50 px-4 py-3">
-              <strong className="text-slate-900">Privacy first.</strong> Your PDFs become rows in your Sheet. No ads, no resale. Delete your account to purge all logs from our database.
-            </p>
-          </div>
-          <button
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-80"
-          >
-            {loading ? 'Redirecting…' : 'Continue with Google'}
-          </button>
-          <p className="text-xs text-slate-400">
-            Problems signing in? Email <a href="mailto:founders@driversheet.com" className="underline">founders@driversheet.com</a> and we’ll get you sorted.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 px-2 py-1 rounded-md">
+          <ArrowLeft className="h-4 w-4" />
+          Back to home
+        </Link>
+
+        <Card className="p-8">
+          {step === "signin" ? (
+            <>
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold mb-2">Welcome to DriverSheet</h1>
+                <p className="text-muted-foreground">Sign in to get started</p>
+              </div>
+
+              <Button
+                onClick={handleGoogleSignIn}
+                variant="outline"
+                className="w-full"
+                disabled={isSigningIn}
+              >
+                {isSigningIn ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <SiGoogle className="mr-2 h-5 w-5" />
+                    Continue with Google
+                  </>
+                )}
+              </Button>
+
+              <p className="text-xs text-center text-muted-foreground mt-6">
+                Start your 7-day free trial. No credit card required.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold mb-2">Connect Your Google Sheet</h1>
+                <p className="text-muted-foreground">Enter your Google Sheet URL to sync your earnings</p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="sheet-url">Google Sheet URL</Label>
+                  <Input
+                    id="sheet-url"
+                    type="url"
+                    placeholder="https://docs.google.com/spreadsheets/d/..."
+                    value={sheetUrl}
+                    onChange={(e) => setSheetUrl(e.target.value)}
+                    className="mt-2"
+                    disabled={isSettingUp}
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Make sure your sheet has a tab named "Sheet1"
+                  </p>
+                </div>
+
+                <div className="bg-accent/50 p-4 rounded-lg">
+                  <p className="text-sm font-medium mb-1">Your forwarding address:</p>
+                  <p className="text-sm text-muted-foreground font-mono">
+                    user-ABC123@driversheet.com
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleSetupComplete}
+                  className="w-full"
+                  disabled={!sheetUrl || isSettingUp}
+                >
+                  {isSettingUp ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Setting up...
+                    </>
+                  ) : (
+                    "Complete Setup"
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
+        </Card>
       </div>
-    </main>
+    </div>
   );
 }

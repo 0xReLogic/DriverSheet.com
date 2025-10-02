@@ -1,57 +1,88 @@
 # PR Rencana Lanjutan DriverSheet.com
 
-## Ringkasan Saat Ini
+## ✅ Selesai Dikerjakan
 - **Backend Rust (Axum + sqlx)** sudah menangani upsert user, list logs, webhook Lemon, serta mail server parsing PDF dan append ke Google Sheet.
-- **Frontend Next.js 13** memiliki landing page, halaman auth dengan Google sign-in, dan dashboard dasar menampilkan forward address, status trial, dan tabel logs.
-- Tooling dasar tersedia (`cargo check`, `npm run lint` bersih). Dependensi frontend sudah terinstal.
+- **Frontend Next.js 13** sudah **SELESAI MIGRASI UI** dari GreenLeafUI:
+  - ✅ Landing page dengan design baru (Hero, Features, HowItWorks, Footer)
+  - ✅ Auth page dengan Google sign-in + UI two-step
+  - ✅ Dashboard lengkap dengan:
+    - Stats cards (Total Gross, Tips, Deliveries, Miles)
+    - LogsTable dengan data dari backend API
+    - CSV export functionality
+    - Trial banner dengan countdown
+    - Copy forwarding address dengan toast notification
+  - ✅ Semua shadcn/ui components ter-copy (47 components)
+  - ✅ Tailwind config + CSS variables untuk theming
+  - ✅ NextAuth integration berjalan
+- **Testing**: 5 unit tests backend passed (`cargo test`)
+- **Lint**: Semua core files clean (no TypeScript errors)
 
-## Target Berikutnya
-1. **Penyelesaian Alur Auth & Onboarding**
-   - Tambahkan form Sheet URL di `/auth` setelah login sukses, ekstrak `sheetId`, panggil `POST /api/users` untuk menyimpan.
-   - Tampilkan error/validasi jika Sheet URL tidak valid.
-   - Pertimbangkan step onboarding ringan di dashboard bila user belum memasukkan Sheet.
+## 🔧 Target Berikutnya (Prioritas)
 
-2. **Fitur Dashboard**
-   - Tombol "Download CSV" (opsi: endpoint Rust atau route Next.js `/api/download`).
-   - Penanganan state loading/error saat fetch logs.
-   - Banner/pesan ketika Lemon webhook mengubah status `paid=true` atau trial mendekati habis.
-   - Opsional: auto-refresh tabel setelah email baru masuk (polling ringan atau SSE kelak).
+### 1. Testing & Validasi (URGENT)
+- [ ] Run `npm run dev` dan test manually:
+  - Auth flow: / → /auth → Google OAuth → /dash
+  - Verify session data populated correctly
+  - Test fetchLogs API integration
+  - Verify stats computation works
+  - Test CSV download
+  - Check trial calculation dengan mock date
+- [ ] Run `npm run build` untuk production build test
+- [ ] Fix any runtime errors yang muncul
 
-3. **API Proxy di Next.js (Opsional sesuai brief)**
-   - Rute `/api/register`, `/api/logs`, `/api/download` untuk mem-proxy request ke backend Axum dengan session token.
-   - Pastikan proteksi auth dan sanitasi input di layer frontend.
+### 2. Sheet URL Integration (HIGH)
+- [ ] Wire up sheet URL submission di auth page (step 2)
+- [ ] Extract sheet ID using normalize_sheet_id logic
+- [ ] Call backend POST /api/users dengan sheetId
+- [ ] Update session after sheet connection
+- [ ] Add validation feedback untuk invalid URLs
 
-4. **Dokumentasi & Deployment**
-   - Buat `Dockerfile` single stage (Rust binary + Next.js static export dengan nginx).
-   - Susun `docker-compose.yml` produksi (port 25/80/443, volume `./data`).
-   - Tambahkan `README.md` berisi: setup env, cara run lokal, cara deploy ke VPS, command testing.
-   - Contoh unit `systemd` dan snippet Nginx/Caddy (redirect 80→443, pass mail port).
-   - Markdown 1 halaman tentang pembuatan Google Service Account dan cara share Sheet.
+### 3. Backend Integration Fixes (MEDIUM)
+- [ ] Verify SMTP server bisa receive emails
+- [ ] Test PDF parsing dengan real payout emails
+- [ ] Verify Google Sheets API write functionality
+- [ ] Test payment webhook dari Lemon Squeezy
+- [ ] Check trial expiration logic works
 
-5. **Quality Gate & CI**
-   - Lengkapi `cargo fmt`, `cargo clippy`, dan `cargo test` (bila ada) ke workflow nanti.
-   - Atasi peringatan TypeScript 5.4.5 vs @typescript-eslint (turunkan versi TS atau upgrade tooling).
+### 4. UX Improvements (MEDIUM)
+- [ ] Add loading skeletons for dashboard
+- [ ] Better error messaging
+- [ ] Add toast notifications
+- [ ] Settings page untuk edit Sheet ID
+- [ ] Add theme toggle (dark/light mode)
 
-6. **Housekeeping / UX**
-   - Komponen pengaturan untuk mengganti Sheet ID.
-   - Konfirmasi email sukses diterima (log atau notifikasi).
-   - Tambahkan state kosong + skeleton UI.
-   - Logging terstruktur untuk PDF parsing gagal.
+### 5. Dokumentasi & Deployment (LOW until above is done)
+- [ ] Create `Dockerfile` untuk Rust backend
+- [ ] Create `Dockerfile` untuk Next.js frontend
+- [ ] Susun `docker-compose.yml` produksi
+- [ ] README.md dengan setup instructions
+- [ ] Google Service Account setup guide
+- [ ] Systemd unit file example
+- [ ] Nginx/Caddy config snippet
 
-## Langkah Eksekusi Disarankan
-1. Selesaikan form Sheet URL + API proxy (±0.5 hari).
-2. Implementasi CSV export + perbaikan dashboard UX (±0.5 hari).
-3. Produksi dokumen deployment + infra assets (±0.5 hari).
-4. Review keseluruhan, jalankan tes (`cargo check`, `npm run lint`), dan siap PR.
+## 🐛 Known Issues
+- CSS lint warnings for @tailwind directives (expected, harmless)
+- GreenLeafUI folder errors (not our concern, different project)
+- Need to test actual email → PDF parsing flow
+- Trial calculation needs testing dengan real dates
+- Payment webhook belum di-test
 
-## Catatan Risiko
-- Google Sheets API memerlukan kredensial valid; perlu testing manual dengan sample Sheet.
-- SMTP parsing bergantung pada format PDF—siapkan fallback logging bila regex tidak match.
-- Deploy container butuh port 25 yang biasanya diblokir penyedia VPS; siapkan plan B (relay atau alternate port) jika diperlukan.
+## 📝 Catatan Teknis
+- Dashboard menggunakan client component dengan useSession
+- fetchLogs throws error dengan message "payment_required" untuk 402 status
+- Trial calculation: 7 days from session.user.created
+- CSV export generates blob client-side
+- Forwarding address: session.user.forwardAddress
+
+## 🚀 Next Action
+**PRIORITAS 1**: Run `npm run dev` di folder web dan test manual semua flow untuk ensure integration works end-to-end.
 
 ## Checklist Sebelum Merge
-- [ ] Form Sheet URL dan API proxy selesai.
-- [ ] CSV export tersedia dan teruji.
-- [ ] Dokumentasi deployment lengkap.
-- [ ] Docker build dan runtime dicoba minimal sekali.
-- [ ] Semua lint/test (`cargo check`, `npm run lint`) hijau.
+- [x] UI migration complete
+- [x] All core files lint clean
+- [x] Backend tests passing
+- [ ] Manual testing passed
+- [ ] Sheet URL integration working
+- [ ] Production build successful
+- [ ] Docker setup complete
+- [ ] Documentation complete

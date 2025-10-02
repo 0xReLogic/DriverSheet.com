@@ -1,0 +1,52 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <rect width="1200" height="900" fill="url(#gradient)"/>
+  
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:0.05" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Dashboard mockup -->
+  <rect x="100" y="150" width="1000" height="600" rx="12" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+  
+  <!-- Header bar -->
+  <rect x="100" y="150" width="1000" height="60" rx="12" fill="#0f172a"/>
+  <text x="130" y="190" font-family="Arial" font-size="24" font-weight="bold" fill="#10b981">DriverSheet</text>
+  
+  <!-- Stats cards -->
+  <rect x="140" y="240" width="220" height="120" rx="8" fill="#334155"/>
+  <text x="160" y="280" font-family="Arial" font-size="14" fill="#94a3b8">Total Gross</text>
+  <text x="160" y="320" font-family="Arial" font-size="32" font-weight="bold" fill="#10b981">$2,450</text>
+  
+  <rect x="390" y="240" width="220" height="120" rx="8" fill="#334155"/>
+  <text x="410" y="280" font-family="Arial" font-size="14" fill="#94a3b8">Total Tips</text>
+  <text x="410" y="320" font-family="Arial" font-size="32" font-weight="bold" fill="#10b981">$385</text>
+  
+  <rect x="640" y="240" width="220" height="120" rx="8" fill="#334155"/>
+  <text x="660" y="280" font-family="Arial" font-size="14" fill="#94a3b8">Deliveries</text>
+  <text x="660" y="320" font-family="Arial" font-size="32" font-weight="bold" fill="#10b981">127</text>
+  
+  <rect x="890" y="240" width="180" height="120" rx="8" fill="#334155"/>
+  <text x="910" y="280" font-family="Arial" font-size="14" fill="#94a3b8">Miles</text>
+  <text x="910" y="320" font-family="Arial" font-size="32" font-weight="bold" fill="#10b981">450</text>
+  
+  <!-- Table -->
+  <rect x="140" y="400" width="930" height="300" rx="8" fill="#334155"/>
+  <text x="160" y="440" font-family="Arial" font-size="16" font-weight="bold" fill="#e2e8f0">Recent Logs</text>
+  
+  <!-- Table rows (simplified) -->
+  <line x1="160" y1="460" x2="1050" y2="460" stroke="#475569" stroke-width="1"/>
+  <rect x="160" y="470" width="890" height="40" fill="#1e293b"/>
+  <rect x="160" y="520" width="890" height="40" fill="#1e293b"/>
+  <rect x="160" y="570" width="890" height="40" fill="#1e293b"/>
+  <rect x="160" y="620" width="890" height="40" fill="#1e293b"/>
+  
+  <!-- Placeholder text -->
+  <text x="500" y="880" font-family="Arial" font-size="16" fill="#64748b" text-anchor="middle">
+    Replace with real dashboard screenshot
+  </text>
+</svg>
